@@ -5,6 +5,8 @@ import os
 from audio_recorder_streamlit import audio_recorder
 import speech_recognition as sr
 import tempfile
+from gtts import gTTS
+from io import BytesIO
 
 # Load environment variables
 load_dotenv()
@@ -76,6 +78,23 @@ def transcribe_audio(audio_bytes, language_code="en-US"):
             except Exception as e:
                 print(f"Could not delete temp file: {e}")
 
+# Function to convert text to speech
+def text_to_speech(text):
+    """Convert text to speech using Google TTS and return audio bytes"""
+    try:
+        # Create TTS object
+        tts = gTTS(text=text, lang='en', slow=False)
+
+        # Save to BytesIO object
+        audio_fp = BytesIO()
+        tts.write_to_fp(audio_fp)
+        audio_fp.seek(0)
+
+        return audio_fp.read()
+    except Exception as e:
+        print(f"[TTS] Error: {e}")
+        return None
+
 # Personality configurations
 PERSONALITIES = {
     "General Assistant": {
@@ -104,7 +123,12 @@ PERSONALITIES = {
 st.set_page_config(
     page_title="AI Chatbot",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
 # Language configurations
@@ -150,6 +174,8 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Clear Chat History"):
         st.session_state.messages = []
+        st.session_state.tts_audio = {}
+        st.session_state.processing = False
         st.rerun()
 
 # Initialize session state for messages
@@ -164,23 +190,39 @@ if "last_audio_bytes" not in st.session_state:
 if "pending_audio" not in st.session_state:
     st.session_state.pending_audio = None
 
+# Initialize session state for TTS
+if "tts_audio" not in st.session_state:
+    st.session_state.tts_audio = {}
+if "processing" not in st.session_state:
+    st.session_state.processing = False
+
 # Main chat interface
 st.title(f"💬 Chat with {selected_personality} {PERSONALITIES[selected_personality]['emoji']}")
 
-# Display chat history
-for message in st.session_state.messages:
+# Display chat history with audio
+for idx, message in enumerate(st.session_state.messages):
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+    # Display audio player for assistant messages (outside chat_message)
+    if message["role"] == "assistant":
+        message_key = f"msg_{idx}"
+
+        # Generate audio if it doesn't exist yet
+        if message_key not in st.session_state.tts_audio:
+            with st.spinner("🔊 Generating audio..."):
+                audio_bytes = text_to_speech(message["content"])
+                if audio_bytes:
+                    st.session_state.tts_audio[message_key] = audio_bytes
+                else:
+                    st.warning("⚠️ TTS temporarily unavailable (rate limited by Google). Try again in a few minutes.")
+
+        # Display audio player if audio exists
+        if message_key in st.session_state.tts_audio:
+            st.audio(st.session_state.tts_audio[message_key], format="audio/mp3")
+
 # Generate AI response if the last message is from the user
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    user_message = st.session_state.messages[-1]["content"]
-
-    # Display user message
-    with st.chat_message("user"):
-        st.markdown(user_message)
-
-    # Generate AI response
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             try:
@@ -201,11 +243,13 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 ai_response = response.text
                 st.markdown(ai_response)
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                st.rerun()
 
             except Exception as e:
                 error_message = f"Error: {str(e)}"
                 st.error(error_message)
                 st.session_state.messages.append({"role": "assistant", "content": error_message})
+                st.rerun()
 
 # Process new audio recording and auto-send
 if "pending_audio" in st.session_state and st.session_state.pending_audio:
@@ -229,23 +273,17 @@ if "pending_audio" in st.session_state and st.session_state.pending_audio:
 # Custom CSS to fix input bar at bottom
 st.markdown("""
 <style>
-    /* Add padding to main content to prevent overlap with fixed input */
-    .main .block-container {
-        padding-bottom: 200px;
+    /* Center sidebar title */
+    [data-testid="stSidebar"] h1 {
+        text-align: center;
     }
 
-    /* Fix the input section to bottom */
-    [data-testid="stVerticalBlock"]:has(> div > [data-testid="stMarkdown"] > div > h5:contains("Send a message")) {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background-color: var(--background-color);
-        padding: 20px;
-        z-index: 999;
-        border-top: 1px solid rgba(128, 128, 128, 0.2);
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    /* Make selectbox non-typeable */
+    [data-testid="stSidebar"] input[aria-autocomplete="list"] {
+        pointer-events: none;
+        caret-color: transparent;
     }
+
 
     /* Style the form to look integrated */
     [data-testid="stForm"] {
@@ -264,7 +302,7 @@ st.markdown("""
         position: absolute !important;
         right: 5px !important;
         top: 0 !important;
-        width: 45px !important;
+        width: 50px !important;
         z-index: 10 !important;
     }
 
@@ -275,13 +313,84 @@ st.markdown("""
         padding: 8px !important;
         font-size: 1.3em !important;
         box-shadow: none !important;
-        height: 40px !important;
-        min-height: 40px !important;
+        height: 45px !important;
+        min-height: 45px !important;
+        width: 45px !important;
+        border-radius: 50% !important;
     }
 
     [data-testid="stForm"] button[kind="formSubmit"]:hover {
         background: rgba(0, 0, 0, 0.05) !important;
         border-radius: 50% !important;
+    }
+
+    /* Reduce gap between columns */
+    [data-testid="column"]:has(.stAudioRecorder) {
+        padding-left: 0px !important;
+        margin-left: -10px !important;
+    }
+
+    /* Style the audio recorder to match send button size */
+    .stAudioRecorder {
+        height: 45px !important;
+        max-height: 45px !important;
+        width: 45px !important;
+        max-width: 45px !important;
+        overflow: hidden !important;
+    }
+
+    .stAudioRecorder > div {
+        height: 45px !important;
+        max-height: 45px !important;
+        width: 45px !important;
+        max-width: 45px !important;
+    }
+
+    .stAudioRecorder button {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        height: 45px !important;
+        max-height: 45px !important;
+        width: 45px !important;
+        max-width: 45px !important;
+        font-size: 0 !important;
+        line-height: 45px !important;
+        border-radius: 50% !important;
+    }
+
+    .stAudioRecorder button:hover {
+        background: rgba(0, 0, 0, 0.05) !important;
+        border-radius: 50% !important;
+    }
+
+    /* Completely hide all icons and content */
+    .stAudioRecorder button * {
+        display: none !important;
+        visibility: hidden !important;
+        font-size: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    /* Show emoji instead */
+    .stAudioRecorder button {
+        text-align: center !important;
+    }
+
+    .stAudioRecorder button::after {
+        content: "\1F399\FE0F";
+        font-size: 1.3em !important;
+        line-height: 45px !important;
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 45px !important;
+        height: 45px !important;
+        text-align: center !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -289,30 +398,9 @@ st.markdown("""
 # Custom input bar with voice recorder at the bottom
 st.markdown("---")
 st.markdown("##### 💬 Send a message")
-st.caption("Click the microphone to record, speak clearly, then click again to stop. Your message will be sent automatically.")
 
-col_voice, col_input = st.columns([0.5, 6])
-
-with col_voice:
-    audio_bytes = audio_recorder(
-        text="",
-        recording_color="#e74c3c",
-        neutral_color="#3498db",
-        icon_name="microphone",
-        icon_size="2x",
-        key="voice_recorder"
-    )
-
-# Handle new recording
-if audio_bytes:
-    print(f"Audio bytes received: {len(audio_bytes)} bytes")
-    if audio_bytes != st.session_state.last_audio_bytes:
-        print("New audio detected, processing...")
-        st.session_state.last_audio_bytes = audio_bytes
-        st.session_state.pending_audio = audio_bytes
-        st.rerun()
-    else:
-        print("Same audio as before, skipping")
+# Create columns for input layout
+col_input, col_voice = st.columns([20, 1])
 
 # Text input with integrated send button
 with col_input:
@@ -336,3 +424,25 @@ with col_input:
         if send_clicked and user_input:
             st.session_state.messages.append({"role": "user", "content": user_input})
             st.rerun()
+
+# Voice recorder button on the right
+with col_voice:
+    audio_bytes = audio_recorder(
+        text="",
+        recording_color="#e74c3c",
+        neutral_color="#3498db",
+        icon_name="microphone",
+        icon_size="1x",
+        key="voice_recorder"
+    )
+
+# Handle new recording
+if audio_bytes:
+    print(f"Audio bytes received: {len(audio_bytes)} bytes")
+    if audio_bytes != st.session_state.last_audio_bytes:
+        print("New audio detected, processing...")
+        st.session_state.last_audio_bytes = audio_bytes
+        st.session_state.pending_audio = audio_bytes
+        st.rerun()
+    else:
+        print("Same audio as before, skipping")
