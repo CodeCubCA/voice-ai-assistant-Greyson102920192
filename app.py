@@ -5,8 +5,8 @@ import os
 from audio_recorder_streamlit import audio_recorder
 import speech_recognition as sr
 import tempfile
-from gtts import gTTS
-from io import BytesIO
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 # Load environment variables
 load_dotenv()
@@ -16,6 +16,14 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Initialize the model
 model = genai.GenerativeModel('gemini-2.5-flash')
+
+# Initialize AWS Polly client
+polly_client = boto3.client(
+    'polly',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name=os.getenv("AWS_REGION", "ca-central-1")
+)
 
 # Function to convert audio to text
 def transcribe_audio(audio_bytes, language_code="en-US"):
@@ -79,18 +87,29 @@ def transcribe_audio(audio_bytes, language_code="en-US"):
                 print(f"Could not delete temp file: {e}")
 
 # Function to convert text to speech
-def text_to_speech(text):
-    """Convert text to speech using Google TTS and return audio bytes"""
+def text_to_speech(text, voice_id="Joanna", language_code="en-US", engine="standard"):
+    """Convert text to speech using AWS Polly and return audio bytes"""
     try:
-        # Create TTS object
-        tts = gTTS(text=text, lang='en', slow=False)
+        # Request speech synthesis from AWS Polly
+        response = polly_client.synthesize_speech(
+            Engine=engine,
+            VoiceId=voice_id,
+            OutputFormat='mp3',
+            Text=text,
+            LanguageCode=language_code
+        )
 
-        # Save to BytesIO object
-        audio_fp = BytesIO()
-        tts.write_to_fp(audio_fp)
-        audio_fp.seek(0)
+        # Read audio stream from response
+        if "AudioStream" in response:
+            audio_stream = response["AudioStream"].read()
+            return audio_stream
+        else:
+            print("[TTS] Error: No AudioStream in response")
+            return None
 
-        return audio_fp.read()
+    except (BotoCoreError, ClientError) as e:
+        print(f"[TTS] AWS Polly Error: {e}")
+        return None
     except Exception as e:
         print(f"[TTS] Error: {e}")
         return None
@@ -137,7 +156,69 @@ LANGUAGES = {
     "French": "fr-FR",
     "Spanish": "es-ES",
     "Mandarin": "zh-CN",
-    "Cantonese": "yue-Hant-HK"  # Cantonese (Traditional Chinese, Hong Kong)
+    "Cantonese": "yue-Hant-HK",  # Cantonese (Traditional Chinese, Hong Kong)
+    "Japanese": "ja-JP",
+    "Korean": "ko-KR"
+}
+
+# Language names for AI prompts
+LANGUAGE_NAMES = {
+    "English": "English",
+    "French": "French",
+    "Spanish": "Spanish",
+    "Mandarin": "Mandarin Chinese",
+    "Cantonese": "Cantonese Chinese",
+    "Japanese": "Japanese",
+    "Korean": "Korean"
+}
+
+# AWS Polly voice configurations by language
+# Format: {display_name: (voice_id, engine)}
+POLLY_VOICES_BY_LANGUAGE = {
+    "English": {
+        "Joanna (Female, US)": ("Joanna", "standard"),
+        "Matthew (Male, US)": ("Matthew", "standard"),
+        "Ivy (Female, US, Child)": ("Ivy", "standard"),
+        "Kendra (Female, US)": ("Kendra", "standard"),
+        "Kimberly (Female, US)": ("Kimberly", "standard"),
+        "Salli (Female, US)": ("Salli", "standard"),
+        "Joey (Male, US)": ("Joey", "standard"),
+        "Justin (Male, US, Child)": ("Justin", "standard")
+    },
+    "French": {
+        "Chantal (Female, Canadian)": ("Chantal", "standard"),
+        "Mathieu (Male)": ("Mathieu", "standard"),
+        "Léa (Female)": ("Lea", "standard")
+    },
+    "Spanish": {
+        "Lupe (Female, US)": ("Lupe", "standard"),
+        "Miguel (Male, US)": ("Miguel", "standard"),
+        "Penélope (Female, US)": ("Penelope", "standard")
+    },
+    "Mandarin": {
+        "Zhiyu (Female, Neural)": ("Zhiyu", "neural")
+    },
+    "Cantonese": {
+        "Hiujin (Female, Neural)": ("Hiujin", "neural")
+    },
+    "Japanese": {
+        "Mizuki (Female, Neural)": ("Mizuki", "neural"),
+        "Takumi (Male, Neural)": ("Takumi", "neural")
+    },
+    "Korean": {
+        "Seoyeon (Female, Neural)": ("Seoyeon", "neural")
+    }
+}
+
+# Language code mapping for Polly TTS
+POLLY_LANGUAGE_CODES = {
+    "English": "en-US",
+    "French": "fr-CA",
+    "Spanish": "es-US",
+    "Mandarin": "cmn-CN",
+    "Cantonese": "yue-CN",
+    "Japanese": "ja-JP",
+    "Korean": "ko-KR"
 }
 
 # Sidebar
@@ -161,6 +242,16 @@ with st.sidebar:
     selected_language = st.selectbox(
         "Choose voice input language:",
         options=list(LANGUAGES.keys()),
+        index=0
+    )
+
+    st.markdown("---")
+    # TTS Voice selector (dynamically shows voices for selected language)
+    st.subheader("TTS Voice")
+    available_voices = POLLY_VOICES_BY_LANGUAGE.get(selected_language, {})
+    selected_voice = st.selectbox(
+        "Choose text-to-speech voice:",
+        options=list(available_voices.keys()),
         index=0
     )
 
@@ -211,11 +302,13 @@ for idx, message in enumerate(st.session_state.messages):
         # Generate audio if it doesn't exist yet
         if message_key not in st.session_state.tts_audio:
             with st.spinner("🔊 Generating audio..."):
-                audio_bytes = text_to_speech(message["content"])
+                voice_id, engine = POLLY_VOICES_BY_LANGUAGE[selected_language][selected_voice]
+                language_code = POLLY_LANGUAGE_CODES[selected_language]
+                audio_bytes = text_to_speech(message["content"], voice_id, language_code, engine)
                 if audio_bytes:
                     st.session_state.tts_audio[message_key] = audio_bytes
                 else:
-                    st.warning("⚠️ TTS temporarily unavailable (rate limited by Google). Try again in a few minutes.")
+                    st.warning("⚠️ TTS temporarily unavailable. Please check your AWS credentials.")
 
         # Display audio player if audio exists
         if message_key in st.session_state.tts_audio:
@@ -229,14 +322,17 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 # Create context with personality and conversation history
                 context = PERSONALITIES[selected_personality]["system_prompt"]
 
+                # Add language instruction
+                language_instruction = f"\n\nIMPORTANT: You must respond in {LANGUAGE_NAMES[selected_language]} to match the user's language preference."
+
                 # Build conversation history for context
                 conversation_history = ""
                 for msg in st.session_state.messages[-5:]:  # Last 5 messages for context
                     role = "User" if msg["role"] == "user" else "Assistant"
                     conversation_history += f"{role}: {msg['content']}\n"
 
-                # Generate response with context
-                full_prompt = f"{context}\n\nConversation:\n{conversation_history}"
+                # Generate response with context and language instruction
+                full_prompt = f"{context}{language_instruction}\n\nConversation:\n{conversation_history}"
                 response = model.generate_content(full_prompt)
 
                 # Display and store response

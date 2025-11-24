@@ -7,7 +7,11 @@ A voice-enabled AI chatbot powered by Google's Gemini AI with multi-language sup
 ## Features
 
 - **Voice Input**: Record voice messages in multiple languages
-- **Multi-Language Support**: English, French, Spanish, Mandarin, and Cantonese
+- **Multi-Language Support**: English, French, Spanish, Mandarin, Cantonese, Japanese, and Korean
+- **Text-to-Speech**: High-quality audio responses using AWS Polly
+  - Standard engine for English, French, and Spanish
+  - Neural engine for Mandarin, Cantonese, Japanese, and Korean (higher quality)
+  - Multiple voice options for each language
 - **Multiple Personalities**:
   - General Assistant - Balanced, helpful responses
   - Study Buddy - Patient tutor for learning
@@ -22,6 +26,7 @@ A voice-enabled AI chatbot powered by Google's Gemini AI with multi-language sup
 - **Streamlit**: Web interface
 - **Google Gemini AI**: AI responses (gemini-2.5-flash model)
 - **Google Speech Recognition**: Voice transcription
+- **AWS Polly**: Text-to-speech audio generation
 - **Python**: Backend logic
 
 ## Setup Instructions
@@ -30,6 +35,8 @@ A voice-enabled AI chatbot powered by Google's Gemini AI with multi-language sup
 
 - Python 3.8+
 - Google Gemini API key
+- AWS Account with Polly access
+- AWS Access Key ID and Secret Access Key
 
 ### Installation
 
@@ -46,9 +53,12 @@ pip install -r requirements.txt
 
 3. Set up environment variables:
    - Copy `.env.example` to `.env`
-   - Add your Gemini API key to `.env`:
+   - Add your API keys and AWS credentials to `.env`:
 ```
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key_here
+AWS_REGION=ca-central-1
 ```
 
 4. Run the application:
@@ -60,10 +70,12 @@ streamlit run app.py
 
 1. **Select a Personality**: Choose from General Assistant, Study Buddy, Fitness Coach, or Gaming Coach
 2. **Choose Language**: Select your preferred voice input language
-3. **Start Chatting**:
+3. **Select TTS Voice**: Choose your preferred text-to-speech voice (Joanna, Matthew, Ivy, etc.)
+4. **Start Chatting**:
    - Type messages in the text box, or
    - Click the microphone icon to record voice messages
-4. **Clear History**: Use the "Clear Chat History" button in the sidebar to start fresh
+   - AI responses will be automatically converted to speech and played
+5. **Clear History**: Use the "Clear Chat History" button in the sidebar to start fresh
 
 ## Project Structure
 
@@ -78,8 +90,14 @@ voice-ai-assistant/
 
 ## API Keys
 
-You need a Google Gemini API key to run this project. Get yours at:
-https://makersuite.google.com/app/apikey
+### Google Gemini API Key
+Get your Gemini API key at: https://makersuite.google.com/app/apikey
+
+### AWS Credentials
+1. Create an AWS account at https://aws.amazon.com
+2. Create an IAM user with Polly access permissions
+3. Generate access keys for the IAM user
+4. Add the credentials to your `.env` file
 
 ## License
 
