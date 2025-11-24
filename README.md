@@ -2,29 +2,30 @@
 
 # Voice AI Assistant 🤖🗣️
 
-A sophisticated voice-enabled AI chatbot powered by Google's Gemini AI featuring multi-language support, customizable personalities, and high-quality text-to-speech using AWS Polly. Communicate naturally in 7 different languages with real-time voice transcription and AI-generated audio responses.
+A sophisticated voice-enabled AI chatbot powered by Google's Gemini AI featuring multi-language support, customizable personalities, and high-quality text-to-speech using AWS Polly. Communicate naturally in 8 different languages with real-time voice transcription and AI-generated audio responses.
 
 ## Features
 
 ### 🎙️ Voice Input & Recognition
-- **Multi-Language Voice Input**: Record voice messages in 7 languages
+- **Multi-Language Voice Input**: Record voice messages in 8 languages
 - **Real-time Transcription**: Automatic voice-to-text conversion using Google Speech Recognition
 - **Language-Specific Recognition**: Optimized recognition for each language
 
 ### 🌍 Multi-Language Support
-Support for **7 languages** with native voice options:
+Support for **8 languages** with native voice options:
 - 🇺🇸 **English** (US)
 - 🇫🇷 **French** (Canadian)
 - 🇪🇸 **Spanish** (US)
 - 🇨🇳 **Mandarin Chinese**
 - 🇭🇰 **Cantonese Chinese**
+- 🏝️ **Hainanese Chinese**
 - 🇯🇵 **Japanese**
 - 🇰🇷 **Korean**
 
 ### 🔊 High-Quality Text-to-Speech (AWS Polly)
-- **19 Voice Options** across all languages
+- **20 Voice Options** across all languages
 - **Standard Engine**: English, French, Spanish, Japanese (cost-effective, high quality)
-- **Neural Engine**: Mandarin, Cantonese, Korean (premium quality, more natural)
+- **Neural Engine**: Mandarin, Cantonese, Hainanese, Korean (premium quality, more natural)
 - **Automatic Language Matching**: AI responds in your selected language
 - **Dynamic Voice Selection**: Voice options update based on chosen language
 
@@ -60,9 +61,9 @@ Support for **7 languages** with native voice options:
 
 ## Key Highlights
 
-✅ **19 Professional Voices** across 7 languages
+✅ **20 Professional Voices** across 8 languages
 ✅ **Language-Aware AI** - Automatically responds in your selected language
-✅ **Neural TTS** for Mandarin, Cantonese, and Korean
+✅ **Neural TTS** for Mandarin, Cantonese, Hainanese, and Korean
 ✅ **4 Unique Personalities** tailored for different use cases
 ✅ **Real-Time Voice Input** with automatic transcription
 ✅ **Context-Aware Conversations** remembering recent messages
@@ -144,6 +145,11 @@ streamlit run app.py
 |------------|--------|-------------|
 | Hiujin | Female | Cantonese Chinese (High Quality) |
 
+### Hainanese Chinese (1 voice - Neural Engine)
+| Voice Name | Gender | Description |
+|------------|--------|-------------|
+| Zhiyu | Female | Hainanese Chinese (High Quality, uses Mandarin voice) |
+
 ### Japanese (2 voices - Standard Engine)
 | Voice Name | Gender | Description |
 |------------|--------|-------------|
@@ -159,7 +165,7 @@ streamlit run app.py
 ## Usage
 
 1. **Select a Personality**: Choose from General Assistant, Study Buddy, Fitness Coach, or Gaming Coach
-2. **Choose Language**: Select your preferred voice input language (English, French, Spanish, Mandarin, Cantonese, Japanese, or Korean)
+2. **Choose Language**: Select your preferred voice input language (English, French, Spanish, Mandarin, Cantonese, Hainanese, Japanese, or Korean)
 3. **Select TTS Voice**: Choose your preferred text-to-speech voice from the available options for your selected language
 4. **Start Chatting**:
    - Type messages in the text box, or
