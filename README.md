@@ -22,7 +22,7 @@ Support for **7 languages** with native voice options:
 - 🇰🇷 **Korean**
 
 ### 🔊 High-Quality Text-to-Speech (AWS Polly)
-- **21 Voice Options** across all languages
+- **19 Voice Options** across all languages
 - **Standard Engine**: English, French, Spanish (cost-effective, high quality)
 - **Neural Engine**: Mandarin, Cantonese, Japanese, Korean (premium quality, more natural)
 - **Automatic Language Matching**: AI responds in your selected language
@@ -60,7 +60,7 @@ Support for **7 languages** with native voice options:
 
 ## Key Highlights
 
-✅ **21 Professional Voices** across 7 languages
+✅ **19 Professional Voices** across 7 languages
 ✅ **Language-Aware AI** - Automatically responds in your selected language
 ✅ **Neural TTS** for Asian languages (Mandarin, Cantonese, Japanese, Korean)
 ✅ **4 Unique Personalities** tailored for different use cases
@@ -144,13 +144,11 @@ streamlit run app.py
 |------------|--------|-------------|
 | Hiujin | Female | Cantonese Chinese (High Quality) |
 
-### Japanese (4 voices - Neural Engine)
+### Japanese (2 voices - Neural Engine)
 | Voice Name | Gender | Description |
 |------------|--------|-------------|
 | Mizuki | Female | Japanese (High Quality) |
 | Takumi | Male | Japanese (High Quality) |
-| Kazuha | Female | Japanese (High Quality, Modern) |
-| Tomoko | Female | Japanese (High Quality, Traditional) |
 
 ### Korean (2 voices - Neural Engine)
 | Voice Name | Gender | Description |
