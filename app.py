@@ -157,7 +157,6 @@ LANGUAGES = {
     "Spanish": "es-ES",
     "Mandarin": "zh-CN",
     "Cantonese": "yue-Hant-HK",  # Cantonese (Traditional Chinese, Hong Kong)
-    "Hainanese": "zh-CN",  # Hainanese (Haikou dialect - uses Mandarin Chinese recognition)
     "Japanese": "ja-JP",
     "Korean": "ko-KR"
 }
@@ -169,7 +168,6 @@ LANGUAGE_NAMES = {
     "Spanish": "Spanish",
     "Mandarin": "Mandarin Chinese",
     "Cantonese": "Cantonese Chinese",
-    "Hainanese": "Hainanese Chinese (Haikou dialect)",
     "Japanese": "Japanese",
     "Korean": "Korean"
 }
@@ -203,9 +201,6 @@ POLLY_VOICES_BY_LANGUAGE = {
     "Cantonese": {
         "Hiujin (Female, Neural)": ("Hiujin", "neural")
     },
-    "Hainanese": {
-        "Zhiyu (Female, Neural)": ("Zhiyu", "neural")
-    },
     "Japanese": {
         "Mizuki (Female)": ("Mizuki", "standard"),
         "Takumi (Male)": ("Takumi", "standard")
@@ -223,7 +218,6 @@ POLLY_LANGUAGE_CODES = {
     "Spanish": "es-US",
     "Mandarin": "cmn-CN",
     "Cantonese": "yue-CN",
-    "Hainanese": "cmn-CN",  # Haikou dialect - uses Mandarin Chinese TTS
     "Japanese": "ja-JP",
     "Korean": "ko-KR"
 }
