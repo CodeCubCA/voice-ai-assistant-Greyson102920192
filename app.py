@@ -202,8 +202,8 @@ POLLY_VOICES_BY_LANGUAGE = {
         "Hiujin (Female, Neural)": ("Hiujin", "neural")
     },
     "Japanese": {
-        "Mizuki (Female, Neural)": ("Mizuki", "neural"),
-        "Takumi (Male, Neural)": ("Takumi", "neural")
+        "Mizuki (Female)": ("Mizuki", "standard"),
+        "Takumi (Male)": ("Takumi", "standard")
     },
     "Korean": {
         "Seoyeon (Female, Neural)": ("Seoyeon", "neural"),
