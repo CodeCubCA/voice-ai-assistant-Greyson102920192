@@ -203,10 +203,13 @@ POLLY_VOICES_BY_LANGUAGE = {
     },
     "Japanese": {
         "Mizuki (Female, Neural)": ("Mizuki", "neural"),
-        "Takumi (Male, Neural)": ("Takumi", "neural")
+        "Takumi (Male, Neural)": ("Takumi", "neural"),
+        "Kazuha (Female, Neural)": ("Kazuha", "neural"),
+        "Tomoko (Female, Neural)": ("Tomoko", "neural")
     },
     "Korean": {
-        "Seoyeon (Female, Neural)": ("Seoyeon", "neural")
+        "Seoyeon (Female, Neural)": ("Seoyeon", "neural"),
+        "Sumi (Female, Neural)": ("Sumi", "neural")
     }
 }
 
