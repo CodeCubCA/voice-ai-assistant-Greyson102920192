@@ -4,6 +4,12 @@
 
 A sophisticated voice-enabled AI chatbot powered by Google's Gemini AI featuring multi-language support, customizable personalities, and high-quality text-to-speech using AWS Polly. Communicate naturally in 7 different languages with real-time voice transcription and AI-generated audio responses.
 
+## Live Deployments
+
+This project is deployed on multiple platforms:
+- **Render**: [voice-ai-assistant on Render](https://voice-ai-assistant-greyson102920192.onrender.com)
+- **Hugging Face Spaces**: [voice-ai-assistant on Hugging Face](https://huggingface.co/spaces/Greyson102920192/voice-ai-assistant)
+
 ## Features
 
 ### 🎙️ Voice Input & Recognition
