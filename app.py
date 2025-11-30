@@ -502,7 +502,7 @@ col_input, col_voice = st.columns([20, 1])
 # Text input with integrated send button
 with col_input:
     # Use form to allow Enter key submission
-    with st.form(key="message_form", clear_on_submit=False):
+    with st.form(key="message_form", clear_on_submit=True):
         col_text, col_btn = st.columns([6, 0.5])
 
         with col_text:
